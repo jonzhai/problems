@@ -1,0 +1,16 @@
+vue-cli3.0 element-ui 按需加载，可直接在babel.config.js中配置
+module.exports = {
+  presets: [
+    '@vue/cli-plugin-babel/preset'
+  ],
+  plugins: [
+    // element官方教程
+    [
+      "component",
+      {
+        libraryName: "element-ui",
+        styleLibraryName: "theme-chalk"
+      }
+    ]
+  ]
+}
