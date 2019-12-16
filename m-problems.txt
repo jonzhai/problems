@@ -1,16 +1,37 @@
-vue-cli3.0 element-ui 按需加载，可直接在babel.config.js中配置
-module.exports = {
-  presets: [
-    '@vue/cli-plugin-babel/preset'
-  ],
-  plugins: [
-    // element官方教程
-    [
-      "component",
-      {
-        libraryName: "element-ui",
-        styleLibraryName: "theme-chalk"
+一、 vue-cli3.0 element-ui 按需加载，可直接在babel.config.js中配置
+      module.exports = {
+        presets: [
+          '@vue/cli-plugin-babel/preset'
+        ],
+        plugins: [
+          // element官方教程
+          [
+            "component",
+            {
+              libraryName: "element-ui",
+              styleLibraryName: "theme-chalk"
+            }
+          ]
+        ]
       }
-    ]
-  ]
-}
+  二、 ant-design-vue datepicker 中文化
+      因此，可以直接合并写入App.vue
+      <template>
+        <a-locale-provider :locale="locale">
+          <App />
+        </a-locale-provider>
+      </template>
+
+      <script>
+      import zhCN from 'ant-design-vue/lib/locale-provider/zh_CN';
+      import moment from 'moment';
+      import 'moment/locale/zh-cn';
+      moment.locale('zh-cn');
+      export default {
+        data() {
+          return {
+            locale: zhCN,
+          }
+        }
+      }
+      </script>
