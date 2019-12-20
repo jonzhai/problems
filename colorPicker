@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .color-picker{
+            padding: 10px;
+            border: 1px solid #e5e5e5;
+            width: 278px;
+        }
+        .canvas{
+            display: flex;
+        }
+        #cvs1{
+            height: 180px;
+            width: 256px;
+            margin-right: 10px;
+            /* background: red; */
+        }
+        #cvs2{
+            height: 180px;
+            width: 12px;
+        }
+    
+    </style>
+</head>
+<body>
+    <div class="color-picker">
+        <div class="canvas">
+            <canvas id="cvs1"></canvas>
+            <canvas id="cvs2" width="12" height="180"></canvas>
+        </div>
+        <div class="detail-color"></div>
+    </div>
+    <script>
+        const cvs1 = document.querySelector('#cvs1')
+        const cvs2 = document.querySelector('#cvs2')
+        const ctx1 = cvs1.getContext('2d')
+        const ctx2 = cvs2.getContext('2d')
+
+        const colorArr = [
+            [255, 0, 0],
+            [255, 255, 0],
+            [0, 255, 0],
+            [0, 255, 255],
+            [0, 0, 255],
+            [255, 0, 255],
+            [255, 0, 0],
+        ]
+        
+        let vN = 180 / 6
+        let k = Math.ceil(256 / 30)
+        let temp = []
+        for(let i = 0; i < 256; i += k){
+            temp.push(i)
+        }
+        // console.log(temp)
+        // ctx2.fillStyle="#0000ff";
+        // ctx2.fillRect(0,0,12,180)
+        let imgData = ctx2.getImageData(0,0,12,180)
+        let trNum = 4*12
+        let dataArr = imgData.data;
+        const len = dataArr.length
+        for(let i = 0; i < 30; i++){
+            for(let j = i*trNum; j < (i+1)*trNum; j += 4) {
+                dataArr[j] = 255
+                dataArr[j+1] = temp[i]
+                dataArr[j+2] = 0
+                dataArr[j+3] = 255
+            }
+        }
+        for(let i = 30; i < 60; i++){
+            for(let j = i*trNum; j < (i+1)*trNum; j += 4) {
+                dataArr[j] = temp[60-i]
+                dataArr[j+1] = 255
+                dataArr[j+2] = 0
+                dataArr[j+3] = 255
+            }
+        }
+        console.log(imgData)
+        ctx2.putImageData(imgData,0,0);
+    </script>
+</body>
+</html>
