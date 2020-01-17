@@ -35,3 +35,6 @@
         }
       }
       </script>
+
+三、webpack 配置中
+vue-loader 要配合 vueloaderplugin ，该插件在vue-loader/lib/plugin中
