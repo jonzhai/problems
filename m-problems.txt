@@ -142,14 +142,14 @@ module.exports =  {
           }
       },
       minimizer: [
-        new OptimizeCSSAssetsPlugin({}),
-        new UglifyJsPlugin(),
+        new OptimizeCSSAssetsPlugin({}),//压缩css
+        new UglifyJsPlugin(),// 压缩js
       ],
     },
     plugins: [
         new HtmlWebpackPlugin({
           template: './index.html',
-          minify: {
+          minify: {// 压缩html
             minimize: true,
             removeConments: true,
             collapseWhitespace: true,
