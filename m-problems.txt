@@ -37,4 +37,148 @@
       </script>
 
 三、webpack 配置中
-vue-loader 要配合 vueloaderplugin ，该插件在vue-loader/lib/plugin中
+1、vue-loader 要配合 vueloaderplugin ，该插件在vue-loader/lib/plugin中
+2、UglifyJsPlugin 只支持es5，所以es6及以上的版本需要配置babel转换为es5
+个人配置如下：
+
+const path = require('path');
+const utils = require("./utils");
+const {readdirSync, statSync} = require("fs");
+const HtmlWebpackPlugin = require('html-webpack-plugin'); // 通过 npm 安装
+// const ExtractTextPlugin = require("extract-text-webpack-plugin"); // ????
+const MiniCssExtractPlugin = require('mini-css-extract-plugin'); // 抽取css文件
+const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');// 压缩css文件
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');// 压缩js文件
+// 清除文件
+const { CleanWebpackPlugin } = require('clean-webpack-plugin'); // 清空dist目录
+const CopyWebpackPlugin = require('copy-webpack-plugin');// copy static目录文件
+const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin'); // 配合DllReferencePlugin，向html注入dll文件
+const VueLoaderPlugin = require('vue-loader/lib/plugin');// 解析.vue文件，配合vue-loader
+const Webpack = require("webpack");
+function resolve(dir) {
+    return path.join(__dirname, "../", dir);
+}
+
+let dllfiles = []
+let files = readdirSync(resolve("static/js/dll"));
+files.forEach(file => {
+  let newPath = path.join(resolve("static/js/dll"), file);
+  let stat = statSync(newPath);
+  if(stat.isFile()) {
+    if(/(.*)\.(js|ts)$/.test(file)) {
+      dllfiles.push({
+        filepath: newPath,
+        includeSourcemap: false
+      })
+    }
+  }
+})
+module.exports =  {
+    mode: 'production',
+    devtool: 'source-map',
+    entry: {
+        main: "./src/app.js"
+    },
+    output: {
+        path: resolve('dist'),
+        filename: 'static/js/[name].[hash].js',//配置js输出地址
+        chunkFilename: utils.assetsPath(`js/[name].[hash:6].js`),
+        devtoolModuleFilenameTemplate: '[resource-path]',
+    },
+    resolve: {
+        extensions: [".js", ".json", ".jsx", ".css"],
+        alias: {
+            "@": resolve("src"),
+            "static": resolve("static")
+        }
+    },
+    module: {
+        rules: [
+          { test: /\.vue$/, use: 'vue-loader' },
+          { test: /\.txt$/, use: 'raw-loader' },
+          {test: /\.(js|jsx)$/, use: 'babel-loader'},
+          {
+            test: /\.css$/,
+            use: [
+              {
+                loader: MiniCssExtractPlugin.loader,
+                options: {
+                  // 这里可以指定一个 publicPath
+                  // 默认使用 webpackOptions.output中的publicPath
+                  publicPath: '../',
+                },
+              },
+              {
+                loader: 'css-loader',
+              }
+            ],
+          }
+        ]
+    },
+    optimization: {
+      splitChunks: {
+          chunks: "async",// all async initial
+          minSize: 30000,
+          maxSize: 0,
+          minChunks: 1,
+          maxAsyncRequests: 5,
+          maxInitialRequests: 3,
+          automaticNameDelimiter: "~",
+          name: true,
+          cacheGroups: {
+            vendor: {
+              name: "vendor",
+              test: /[\\/]node_modules[\\/]/,
+              chunks: "all",
+                priority: 10 // 优先级
+            },
+            common: {
+                name: "common",
+                test: /[\\/]src[\\/]/,
+                minSize: 1024,
+                chunks: "all",
+                priority: 5
+            }
+          }
+      },
+      minimizer: [
+        new OptimizeCSSAssetsPlugin({}),
+        new UglifyJsPlugin(),
+      ],
+    },
+    plugins: [
+        new HtmlWebpackPlugin({
+          template: './index.html',
+          minify: {
+            minimize: true,
+            removeConments: true,
+            collapseWhitespace: true,
+            minifyCSS: true,
+            minifyJS: true,
+          }
+        }),
+          // 删除文件 保留新文件
+        new CleanWebpackPlugin(),
+        new VueLoaderPlugin(),
+        new CopyWebpackPlugin([
+          {
+            from: resolve("static/js"),
+            to: resolve("dist/static/js") //配置copy地址
+          },
+        ]),
+        new Webpack.DefinePlugin({
+          VERSION: JSON.stringify("5fa3b9")
+        }),
+        new Webpack.DllReferencePlugin({
+          context: __dirname,
+          manifest: require('../static/js/dll/vue.manifest.json')
+        }),
+        new AddAssetHtmlPlugin(dllfiles),
+        new MiniCssExtractPlugin({
+          filename: 'css/[name].css',
+          chunkFilename: 'static/css/[name].[id].css', //此处配置css输出地址
+        }),
+        // new UglifyJsPlugin(),
+    ]
+}
+
